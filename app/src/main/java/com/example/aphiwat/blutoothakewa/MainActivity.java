@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
             outStream=tempOut;
         }
         public void run(){
-            byte[] buffer = new byte[10000];
+            byte[] buffer = new byte[100000];
             int bytes;
             while (true){
                 try {
