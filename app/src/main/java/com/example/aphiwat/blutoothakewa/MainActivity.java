@@ -31,7 +31,8 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
         import java.util.ArrayList;
-        import java.util.Set;
+import java.util.Arrays;
+import java.util.Set;
         import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     BluetoothAdapter bluetoothAdapter;
     SendReceive sendReceive;
     String tx="";
+    String prevTempMsg = "Maira";
     ArrayList<String> local= new ArrayList<>();
 
     public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -119,26 +121,38 @@ public class MainActivity extends AppCompatActivity {
                     byte[] readbuffer = (byte[]) msg_type.obj;
                     String tempMsg = new String(readbuffer,0, msg_type.arg1);
                     //IO.saveFile(tempMsg);
-                    tx=tx + tempMsg;
 
-                    Log.d("AAAAA",tempMsg);
+                    if (tempMsg.contains(prevTempMsg)) {
+                        tx = tx + tempMsg.replace(prevTempMsg, "");
+                    } else {
+                        tx = tx + tempMsg;
+                    }
+                    prevTempMsg = tempMsg;
+
                     String[] name = tx.split(";");
 
-                    int n;
-                    if(name[name.length-1].substring(name[name.length-1].length()-1)==")"){
-                        tx="";
-                        save(tx);
-                        n=name.length;
-                    }else{
-                        tx=name[name.length-1];
-                        n=name.length-1;
+                    int n = 0;
+                    if (name.length != 0 && name[name.length - 1].length() != 0) {
+                        if (name[name.length - 1].substring(name[name.length - 1].length() - 1).equals(")")) {
+                            n = name.length;
+                            tx="";
+                            save(tx);
+                        } else {
+                            n=name.length-1;
+                            tx = name[n];
+                        }
                     }
 
                     if (!gql.isSend()) {
+                        String j = "";
                         for (int i = 0; i < n; ++i) {
-                            gql.addList(name[i]);
-                            Log.d("gql", name[i]);
+                            if (name[i].length() != 0 && name[i].substring(0, 4).equals("push")) {
+                                j += "[" + name[i] + "], ";
+                                gql.addList(name[i]);
+                            }
                         }
+                        Log.d("gql", "size:" + gql.getList().size() + ", isSend:" + gql.isSend());
+                        Log.d("gql", "list:" + j);
                     }
 
                     if (gql.canSend()) {
@@ -149,8 +163,7 @@ public class MainActivity extends AppCompatActivity {
                         gql.send();
                     }
 
-                    Log.d("gql", ""+gql.getList().size());
-
+                    Log.d("gql", "\n");
 
                     break;
             }
