@@ -1,8 +1,8 @@
 package com.example.aphiwat.blutoothakewa;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
+import java.util.Queue;
 
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -16,17 +16,16 @@ public class GraphQL {
     private OkHttpClient client = new OkHttpClient();
     private MediaType media_type = MediaType.parse("application/graphql");
 
-    private ArrayList<String> value_konosuba = new ArrayList<String>();
-
     private String url = "https://stratos.watchsmart.space/graphql/";
     private String auth_token;
     private String postBody;
 
-    private int max_konosuba;
-    private int size_per_round;
-
-    private boolean is_sendsuccess = true;
-    private boolean is_konosuba = false;
+    private Queue<String> value = new LinkedList<String>();
+    private int max_value;
+    private int size_package;
+    private boolean is_successful = true;
+    private boolean is_failure = false;
+    private boolean can_send = false;
 
     public GraphQL(String auth_token) {
         setToken(auth_token);
@@ -43,23 +42,7 @@ public class GraphQL {
         return client.newCall(request);
     }
 
-    public void createPostBody(List<String> value) {
-        int size;
-        if (value.size() <= (int) (1.5 * size_per_round)) {
-            size = value.size();
-        } else {
-            size = size_per_round;
-        }
-
-        postBody = "mutation{";
-        for (int i = 0; i < size; i++) {
-            postBody += "j" + i + ":" + value.get(0) + "{status}";
-            value.remove(0);
-        }
-        postBody += "}";
-    }
-
-    public void push() {
+    public void post() {
         Request request = new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(media_type, postBody))
@@ -71,34 +54,60 @@ public class GraphQL {
 
             @Override
             public void onFailure(Call call, IOException e) {
-                is_sendsuccess = false;
+                is_successful = false;
+                is_failure = true;
                 call.cancel();
             }
 
             @Override
             public void onResponse(Call call, Response response) {
                 if (response.isSuccessful()) {
-                    is_sendsuccess = true;
+                    is_successful = true;
+                    is_failure = false;
                 } else {
-                    is_sendsuccess = false;
+                    is_successful = false;
+                    is_failure = true;
                 }
             }
         });
     }
 
-    public void send() {
-        if (is_sendsuccess) {
-            if (value_konosuba.size() == 0) {
-                is_sendsuccess = true;
-                is_konosuba = false;
-            } else {
-                createPostBody(value_konosuba);
-                is_sendsuccess = false;
-            }
+    public void makeBody() {
+        int size;
+        if (value.size() <= (int) (1.5 * size_package)) {
+            size = value.size();
+        } else {
+            size = size_package;
         }
 
-        if (!is_sendsuccess) {
-            push();
+        int i = 0;
+        postBody = "mutation{";
+        while (i < size) {
+            postBody += "j" + i + ":" + value.poll() + "{status}";
+            ++i;
+        }
+        postBody += "}";
+    }
+
+    public void send() {
+        if (value.size() >= max_value) {
+            can_send = true;
+        }
+
+        if (can_send) {
+            if (is_successful) {
+                if (value.size() == 0) {
+                    is_successful = true;
+                    can_send = false;
+                } else {
+                    makeBody();
+                    post();
+                    is_successful = false;
+                }
+            } else if (is_failure) {
+                is_failure = false;
+                post();
+            }
         }
     }
 
@@ -107,38 +116,26 @@ public class GraphQL {
     }
 
     public boolean isSend() {
-        return is_konosuba;
-    }
-
-    public void setSend() {
-        is_konosuba = true;
-    }
-
-    public boolean canSend() {
-        return value_konosuba.size() >= max_konosuba;
+        return can_send;
     }
 
     public void setSizePerRound(int limit) {
-        size_per_round = limit;
+        size_package = limit;
     }
 
     public void setMaxTimes(int time) {
-        max_konosuba = time * size_per_round;
+        max_value = time * size_package;
     }
 
     public void setMaxSize(int size) {
-        max_konosuba = size;
+        max_value = size;
     }
 
-    public void addList(String value) {
-        value_konosuba.add(value);
+    public void addQueue(String query) {
+        value.add(query);
     }
 
-    public ArrayList<String> getList() {
-        return value_konosuba;
-    }
-
-    public int getListSize() {
-        return value_konosuba.size();
+    public Queue<String> getQueue() {
+        return value;
     }
 }

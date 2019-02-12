@@ -1,57 +1,41 @@
 package com.example.aphiwat.blutoothakewa;
+
 import android.annotation.SuppressLint;
-        import android.bluetooth.BluetoothAdapter;
-        import android.bluetooth.BluetoothDevice;
-        import android.bluetooth.BluetoothServerSocket;
-        import android.bluetooth.BluetoothSocket;
-        import android.content.Intent;
-        import android.os.Bundle;
-        import android.os.Handler;
-        import android.os.Message;
-        import android.support.annotation.Nullable;
-        import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothServerSocket;
+import android.bluetooth.BluetoothSocket;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-        import android.widget.AdapterView;
-        import android.widget.ArrayAdapter;
-        import android.widget.Button;
-        import android.widget.EditText;
-        import android.widget.ListView;
-        import android.widget.TextView;
-        import android.widget.Toast;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-        import java.io.InputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-        import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Set;
-        import java.util.UUID;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
-    private static final String FILE_NAME = "example.txt";
-    private static final String FILE_LOCAL = "Blue.dat";
     public static final int REQUEST_ENABLE_BT = 1;
-    ListView lv_paired_devices;
-    TextView msg_box;
-    EditText writeNa;
-    boolean bluTT = false;
-    Button send,readFile,remove,readGPS;
-    Set<BluetoothDevice> set_pairedDevices;
-    ArrayAdapter adapter_paired_devices;
-    BluetoothAdapter bluetoothAdapter;
-    SendReceive sendReceive;
-    String tx="";
-    String prevTempMsg = "Maira";
-    ArrayList<String> local= new ArrayList<>();
-
     public static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
     public static final int MESSAGE_READ = 0;
     public static final int MESSAGE_WRITE = 1;
@@ -59,29 +43,23 @@ public class MainActivity extends AppCompatActivity {
     public static final int CONNECTED = 3;
     public static final int NO_SOCKET_FOUND = 4;
     public static final int STATE_MESSAGE_RECEIVED = 5;
-
+    private static final String FILE_NAME = "example.txt";
+    private static final String FILE_LOCAL = "Blue.dat";
+    ListView lv_paired_devices;
+    TextView msg_box;
+    EditText writeNa;
+    boolean bluTT = false;
+    Button send, readFile, remove, readGPS;
+    Set<BluetoothDevice> set_pairedDevices;
+    ArrayAdapter adapter_paired_devices;
+    BluetoothAdapter bluetoothAdapter;
+    SendReceive sendReceive;
+    String tx = "";
+    String prevTempMsg = "Maira";
+    ArrayList<String> local = new ArrayList<>();
     String bluetooth_message = "00";
 
     private GraphQL gql;
-
-    private String AUTH_USER = "Maira";
-    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ik1haXJhS3V5YW1hIiwiZXhwIjoxNTQ4NDI3MzI4LCJvcmlnSWF0IjoxNTQ4NDI3MDI4fQ.V-hlVNVH0Yk5FYtiNdqY7xJ-6AoazRsLsKoEFMxDbc8";
-
-//    private String AUTH_USER = "volunteer3";
-//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InZvbHVudGVlcjMiLCJleHAiOjE1NDA3OTczMTcsIm9yaWdfaWF0IjoxNTQwNzk3MDE3fQ.LqiKgrYxtxLyAzYfV_I3_EHNu6HiEPVdmE1-aJFNsNU";
-
-//    private String AUTH_USER = "orachat.ch";
-//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Im9yYWNoYXQuY2giLCJleHAiOjE1NDU2NDg3ODksIm9yaWdJYXQiOjE1NDU2NDg0ODl9.a1NXZtqFa04vOlK2jIT34CCjKk4iERzqzzFPKfl2vx0";
-
-//    private String AUTH_USER = "test_smartwatch";
-//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3Rfc21hcnR3YXRjaCIsImV4cCI6MTU0NzQ1NTczMCwib3JpZ0lhdCI6MTU0NzQ1NTQzMH0.phovlfEAp4L4XbNvk_2IuzUpHXVviVmRVhH4lyUpkiU";
-
-//    private String AUTH_USER = "robot1";
-//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InJvYm90MSIsImV4cCI6MTU0Nzc5NDUzOCwib3JpZ0lhdCI6MTU0Nzc5NDIzOH0.sQExDIT97pm7UeJCLeWrWWhkFfZfDFbWZhyExWlBY48";
-
-//    private String AUTH_USER = "robot2";
-//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InJvYm90MiIsImV4cCI6MTU0Nzc5NDQ3MSwib3JpZ0lhdCI6MTU0Nzc5NDE3MX0.e7xVjPlLwS44XBs3EpK
-
     @SuppressLint("HandlerLeak")
     Handler mHandler = new Handler() {
         @Override
@@ -119,15 +97,18 @@ public class MainActivity extends AppCompatActivity {
 
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readbuffer = (byte[]) msg_type.obj;
-                    String tempMsg = new String(readbuffer,0, msg_type.arg1);
+                    String tempMsg = new String(readbuffer, 0, msg_type.arg1);
                     //IO.saveFile(tempMsg);
+//                    Log.d("GraphQL", "ms: " + tempMsg);
 
                     if (tempMsg.contains(prevTempMsg)) {
                         tx = tx + tempMsg.replace(prevTempMsg, "");
+//                        Log.d("GraphQL", "en: " + tempMsg);
                     } else {
                         tx = tx + tempMsg;
                     }
                     prevTempMsg = tempMsg;
+//                    Log.d("GraphQL", "tx: " + tx);
 
                     String[] name = tx.split(";");
 
@@ -135,41 +116,55 @@ public class MainActivity extends AppCompatActivity {
                     if (name.length != 0 && name[name.length - 1].length() != 0) {
                         if (name[name.length - 1].substring(name[name.length - 1].length() - 1).equals(")")) {
                             n = name.length;
-                            tx="";
+                            tx = "";
                             save(tx);
                         } else {
-                            n=name.length-1;
+                            n = name.length - 1;
                             tx = name[n];
                         }
                     }
 
                     if (!gql.isSend()) {
                         String j = "";
-                        for (int i = 0; i < n; ++i) {
-                            if (name[i].length() != 0 && name[i].substring(0, 4).equals("push")) {
-                                j += "[" + name[i] + "], ";
-                                gql.addList(name[i]);
-                            }
+                        for (String i : name) {
+                            int len = i.length();
+//                            Log.d("GraphQL", len + " : " + i);
+                            if (len > 10 && i.substring(0, 4).equals("push") && i.substring(len - 1).equals(")")) {
+                                j += "[" + i + "], ";
+                                gql.addQueue(i);
+                            }// else {
+//                                Log.d("GraphQL", "tx:" + tx + ", temp:" + tempMsg + ", i:" + i);
+//                            }
+
                         }
-                        Log.d("gql", "size:" + gql.getList().size() + ", isSend:" + gql.isSend());
-                        Log.d("gql", "list:" + j);
+
+//                        Log.d("GraphQL", "size:" + gql.getQueue().size() + ", isSend:" + gql.isSend());
+//                        Log.d("GraphQL", "li:" + j);
                     }
 
-                    if (gql.canSend()) {
-                        gql.setSend();
-                    }
-
-                    if (gql.isSend()) {
-                        gql.send();
-                    }
-
-                    Log.d("gql", "\n");
+                    gql.send();
 
                     break;
             }
         }
     };
+    private String AUTH_USER = "Maira";
 
+//    private String AUTH_USER = "volunteer3";
+//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InZvbHVudGVlcjMiLCJleHAiOjE1NDA3OTczMTcsIm9yaWdfaWF0IjoxNTQwNzk3MDE3fQ.LqiKgrYxtxLyAzYfV_I3_EHNu6HiEPVdmE1-aJFNsNU";
+
+//    private String AUTH_USER = "orachat.ch";
+//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Im9yYWNoYXQuY2giLCJleHAiOjE1NDU2NDg3ODksIm9yaWdJYXQiOjE1NDU2NDg0ODl9.a1NXZtqFa04vOlK2jIT34CCjKk4iERzqzzFPKfl2vx0";
+
+//    private String AUTH_USER = "test_smartwatch";
+//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InRlc3Rfc21hcnR3YXRjaCIsImV4cCI6MTU0NzQ1NTczMCwib3JpZ0lhdCI6MTU0NzQ1NTQzMH0.phovlfEAp4L4XbNvk_2IuzUpHXVviVmRVhH4lyUpkiU";
+
+//    private String AUTH_USER = "robot1";
+//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InJvYm90MSIsImV4cCI6MTU0Nzc5NDUzOCwib3JpZ0lhdCI6MTU0Nzc5NDIzOH0.sQExDIT97pm7UeJCLeWrWWhkFfZfDFbWZhyExWlBY48";
+
+    //    private String AUTH_USER = "robot2";
+//    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6InJvYm90MiIsImV4cCI6MTU0Nzc5NDQ3MSwib3JpZ0lhdCI6MTU0Nzc5NDE3MX0.e7xVjPlLwS44XBs3EpK
+    private String AUTH_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VybmFtZSI6Ik1haXJhS3V5YW1hIiwiZXhwIjoxNTQ4NDI3MzI4LCJvcmlnSWF0IjoxNTQ4NDI3MDI4fQ.V-hlVNVH0Yk5FYtiNdqY7xJ-6AoazRsLsKoEFMxDbc8";
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -183,7 +178,7 @@ public class MainActivity extends AppCompatActivity {
         msg_box.setText(String.valueOf(loadB()));
 
         gql = new GraphQL(AUTH_TOKEN);
-        gql.setSizePerRound(500);
+        gql.setSizePerRound(100);
         gql.setMaxTimes(3);
     }
 
@@ -213,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String string = String.valueOf(writeNa.getText());
-                if(bluTT) {
+                if (bluTT) {
                     sendReceive.write(string.getBytes());
                 }
             }
@@ -228,7 +223,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 String[] name = tx.split(";");
-                if(tx!="") {
+                if (tx != "") {
                     String a = "pushGps";
                     for (int i = 0; i < name.length; i++) {
                         if (name[i].toLowerCase().indexOf(a.toLowerCase()) != -1)
@@ -245,7 +240,7 @@ public class MainActivity extends AppCompatActivity {
         remove.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                tx="";
+                tx = "";
                 save(tx);
             }
         });
@@ -253,12 +248,12 @@ public class MainActivity extends AppCompatActivity {
 
     public void initialize_layout() {
         lv_paired_devices = (ListView) findViewById(R.id.lv_paired_devices);
-        msg_box=(TextView)findViewById(R.id.msgbox);
-        send=(Button)findViewById(R.id.sendd);
-        remove=(Button)findViewById(R.id.clear);
-        readGPS=(Button)findViewById(R.id.readGps);
-        readFile=(Button)findViewById(R.id.readFile);
-        writeNa=(EditText)findViewById(R.id.nameNa);
+        msg_box = (TextView) findViewById(R.id.msgbox);
+        send = (Button) findViewById(R.id.sendd);
+        remove = (Button) findViewById(R.id.clear);
+        readGPS = (Button) findViewById(R.id.readGps);
+        readFile = (Button) findViewById(R.id.readFile);
+        writeNa = (EditText) findViewById(R.id.nameNa);
         adapter_paired_devices = new ArrayAdapter(getApplicationContext(), R.layout.support_simple_spinner_dropdown_item);
         lv_paired_devices.setAdapter(adapter_paired_devices);
     }
@@ -288,10 +283,119 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
     @Override
     protected void onDestroy() {
         save(tx);
         super.onDestroy();
+    }
+
+    ////////////////////////////////////////////////////
+    public void save(String a) {
+        String text = a;
+        FileOutputStream fos = null;
+
+        try {
+            fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
+            fos.write(text.getBytes());
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public String load() {
+        FileInputStream fis = null;
+        String a = "WTF";
+        try {
+            fis = openFileInput(FILE_NAME);
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            StringBuilder sb = new StringBuilder();
+            String text;
+
+            while ((text = br.readLine()) != null) {
+                sb.append(text).append("\n");
+            }
+
+            return sb.toString();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return a;
+    }
+
+    //////////////////////////////////////////////////
+    public void saveB(BluetoothDevice a) {
+        BluetoothDevice text = a;
+        FileOutputStream fos = null;
+        try {
+            fos = openFileOutput(FILE_LOCAL, MODE_PRIVATE);
+            ObjectOutputStream os = new ObjectOutputStream(fos);
+            os.writeObject(text);
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public BluetoothDevice loadB() {
+        FileInputStream fis = null;
+        BluetoothDevice sb = null;
+        String a = "WTF";
+        try {
+            fis = openFileInput(FILE_LOCAL);
+            ObjectInputStream is = new ObjectInputStream(fis);
+            sb = (BluetoothDevice) is.readObject();
+            return sb;
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return sb;
     }
 
     public class AcceptThread extends Thread {
@@ -321,16 +425,15 @@ public class MainActivity extends AppCompatActivity {
                 if (socket != null) {
                     // Do work to manage the connection (in a separate thread)
                     mHandler.obtainMessage(CONNECTED).sendToTarget();
-                    sendReceive=new SendReceive(socket);
+                    sendReceive = new SendReceive(socket);
                     sendReceive.start();
                 }
             }
         }
     }
 
-
     private class ConnectThread extends Thread {
-        private final BluetoothSocket mmSocket ;
+        private final BluetoothSocket mmSocket;
         private final BluetoothDevice mmDevice;
 
         public ConnectThread(BluetoothDevice device) {
@@ -445,149 +548,46 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    private class SendReceive extends Thread{
+
+    private class SendReceive extends Thread {
         private final BluetoothSocket bluetoothSocket;
         private final InputStream inStream;
         private final OutputStream outStream;
-        public SendReceive(BluetoothSocket socket){
-            bluetoothSocket=socket;
-            InputStream tempIn=null;
-            OutputStream tempOut=null;
+
+        public SendReceive(BluetoothSocket socket) {
+            bluetoothSocket = socket;
+            InputStream tempIn = null;
+            OutputStream tempOut = null;
             try {
-                tempIn=bluetoothSocket.getInputStream();
-                tempOut=bluetoothSocket.getOutputStream();
-            }catch (IOException e){
+                tempIn = bluetoothSocket.getInputStream();
+                tempOut = bluetoothSocket.getOutputStream();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
-            inStream=tempIn;
-            outStream=tempOut;
+            inStream = tempIn;
+            outStream = tempOut;
         }
-        public void run(){
+
+        public void run() {
             byte[] buffer = new byte[100000];
             int bytes;
-            while (true){
+            while (true) {
                 try {
-                    bytes=inStream.read(buffer);
-                    mHandler.obtainMessage(STATE_MESSAGE_RECEIVED,bytes,-1,buffer).sendToTarget();
-                }catch (IOException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        public void write(byte[] bytes){
-                try {
-                    outStream.write(bytes);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-        }
-    }
-
-    ////////////////////////////////////////////////////
-    public void save(String a) {
-        String text = a;
-        FileOutputStream fos = null;
-
-        try {
-            fos = openFileOutput(FILE_NAME, MODE_PRIVATE);
-            fos.write(text.getBytes());
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
+                    bytes = inStream.read(buffer);
+                    mHandler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes, -1, buffer).sendToTarget();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
             }
         }
-    }
 
-    public String load() {
-        FileInputStream fis = null;
-        String a="WTF";
-        try {
-            fis = openFileInput(FILE_NAME);
-            InputStreamReader isr = new InputStreamReader(fis);
-            BufferedReader br = new BufferedReader(isr);
-            StringBuilder sb = new StringBuilder();
-            String text;
-
-            while ((text = br.readLine()) != null) {
-                sb.append(text).append("\n");
+        public void write(byte[] bytes) {
+            try {
+                outStream.write(bytes);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            return sb.toString();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
         }
-        return a;
-    }
-    //////////////////////////////////////////////////
-    public void saveB(BluetoothDevice a) {
-        BluetoothDevice text = a;
-        FileOutputStream fos = null;
-        try {
-            fos = openFileOutput(FILE_LOCAL, MODE_PRIVATE);
-            ObjectOutputStream os = new ObjectOutputStream(fos);
-            os.writeObject(text);
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    public BluetoothDevice loadB() {
-        FileInputStream fis = null;
-        BluetoothDevice sb=null;
-        String a="WTF";
-        try {
-            fis = openFileInput(FILE_LOCAL);
-            ObjectInputStream is = new ObjectInputStream(fis);
-            sb = (BluetoothDevice) is.readObject();
-            return sb;
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            if (fis != null) {
-                try {
-                    fis.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return sb;
     }
 }
