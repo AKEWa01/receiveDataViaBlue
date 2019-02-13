@@ -323,6 +323,7 @@ public class MainActivity extends AppCompatActivity {
                     mHandler.obtainMessage(CONNECTED).sendToTarget();
                     sendReceive=new SendReceive(socket);
                     sendReceive.start();
+
                 }
             }
         }
@@ -362,6 +363,7 @@ public class MainActivity extends AppCompatActivity {
                 //msg_box.setText(String.valueOf(mmSocket));
                 sendReceive = new SendReceive(mmSocket);
                 sendReceive.start();
+
 
             } catch (IOException connectException) {
                 // Unable to connect; close the socket and get out
