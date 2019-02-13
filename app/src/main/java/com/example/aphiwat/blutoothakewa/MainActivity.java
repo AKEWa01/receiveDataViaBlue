@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     Set<BluetoothDevice> set_pairedDevices;
     ArrayAdapter adapter_paired_devices;
     BluetoothAdapter bluetoothAdapter;
-    SendReceive sendReceive;
+    //SendReceive sendReceive;
     String tx = "";
     String prevTempMsg = "Maira";
     ArrayList<String> local = new ArrayList<>();
@@ -95,56 +95,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "No socket found", Toast.LENGTH_SHORT).show();
                     break;
 
-                case STATE_MESSAGE_RECEIVED:
-                    byte[] readbuffer = (byte[]) msg_type.obj;
-                    String tempMsg = new String(readbuffer, 0, msg_type.arg1);
-                    //IO.saveFile(tempMsg);
-//                    Log.d("GraphQL", "ms: " + tempMsg);
-
-                    if (tempMsg.contains(prevTempMsg)) {
-                        tx = tx + tempMsg.replace(prevTempMsg, "");
-//                        Log.d("GraphQL", "en: " + tempMsg);
-                    } else {
-                        tx = tx + tempMsg;
-                    }
-                    prevTempMsg = tempMsg;
-//                    Log.d("GraphQL", "tx: " + tx);
-
-                    String[] name = tx.split(";");
-
-                    int n = 0;
-                    if (name.length != 0 && name[name.length - 1].length() != 0) {
-                        if (name[name.length - 1].substring(name[name.length - 1].length() - 1).equals(")")) {
-                            n = name.length;
-                            tx = "";
-                            save(tx);
-                        } else {
-                            n = name.length - 1;
-                            tx = name[n];
-                        }
-                    }
-
-                    if (!gql.isSend()) {
-                        String j = "";
-                        for (String i : name) {
-                            int len = i.length();
-//                            Log.d("GraphQL", len + " : " + i);
-                            if (len > 10 && i.substring(0, 4).equals("push") && i.substring(len - 1).equals(")")) {
-                                j += "[" + i + "], ";
-                                gql.addQueue(i);
-                            }// else {
-//                                Log.d("GraphQL", "tx:" + tx + ", temp:" + tempMsg + ", i:" + i);
-//                            }
-
-                        }
-
-//                        Log.d("GraphQL", "size:" + gql.getQueue().size() + ", isSend:" + gql.isSend());
-//                        Log.d("GraphQL", "li:" + j);
-                    }
-
-                    gql.send();
-
-                    break;
             }
         }
     };
@@ -209,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 String string = String.valueOf(writeNa.getText());
                 if (bluTT) {
-                    sendReceive.write(string.getBytes());
+                    //sendReceive.write(string.getBytes());
                 }
             }
         });
@@ -425,8 +375,13 @@ public class MainActivity extends AppCompatActivity {
                 if (socket != null) {
                     // Do work to manage the connection (in a separate thread)
                     mHandler.obtainMessage(CONNECTED).sendToTarget();
-                    sendReceive = new SendReceive(socket);
-                    sendReceive.start();
+                    BlueData.socket=socket;
+
+                    String input = "mm : "+String.valueOf(BlueData.socket);
+                    Intent serviceIntent = new Intent(MainActivity.this, ExampleService.class);
+                    serviceIntent.putExtra("inputExtra", input);
+                    serviceIntent.setAction(Constants.ACTION.START_ACTION);
+                    startService(serviceIntent);
 
                 }
             }
@@ -464,8 +419,12 @@ public class MainActivity extends AppCompatActivity {
                 mmSocket.connect();
                 bluTT = true;
                 //msg_box.setText(String.valueOf(mmSocket));
-                sendReceive = new SendReceive(mmSocket);
-                sendReceive.start();
+                BlueData.socket=mmSocket;
+                String input = "mm : "+String.valueOf(BlueData.socket);
+                Intent serviceIntent = new Intent(MainActivity.this, ExampleService.class);
+                serviceIntent.putExtra("inputExtra", input);
+                serviceIntent.setAction(Constants.ACTION.START_ACTION);
+                startService(serviceIntent);
 
 
             } catch (IOException connectException) {
@@ -551,45 +510,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private class SendReceive extends Thread {
-        private final BluetoothSocket bluetoothSocket;
-        private final InputStream inStream;
-        private final OutputStream outStream;
-
-        public SendReceive(BluetoothSocket socket) {
-            bluetoothSocket = socket;
-            InputStream tempIn = null;
-            OutputStream tempOut = null;
-            try {
-                tempIn = bluetoothSocket.getInputStream();
-                tempOut = bluetoothSocket.getOutputStream();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            inStream = tempIn;
-            outStream = tempOut;
-        }
-
-        public void run() {
-            byte[] buffer = new byte[100000];
-            int bytes;
-            while (true) {
-                try {
-                    bytes = inStream.read(buffer);
-                    mHandler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes, -1, buffer).sendToTarget();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        public void write(byte[] bytes) {
-            try {
-                outStream.write(bytes);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-    }
 }
