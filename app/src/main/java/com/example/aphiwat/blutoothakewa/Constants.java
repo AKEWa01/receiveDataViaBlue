@@ -7,6 +7,7 @@ public class Constants {
         public static final String MAIN_ACTION = "test.action.main";
         public static final String START_ACTION = "test.action.start";
         public static final String STOP_ACTION = "test.action.stop";
+        public static final String RE_ACTION = "test.action.re";
     }
 
     public static class STATE_SERVICE {
